@@ -16,7 +16,7 @@ for camID in index:
     #cmdl[camID] = cdll.LoadLibrary("./libJHCap.so")
     print(camID)
     cmdl[camID].CameraInit(camID)
-    cmdl[camID].CameraSetResolution(camID,4,0,0)
+    cmdl[camID].CameraSetResolution(camID,5,0,0)
     cmdl[camID].CameraSetGain(camID,600)
     cmdl[camID].CameraSetExposure(camID,30)
     cmdl[camID].CameraSetContrast.argtypes = [c_int, c_double]
