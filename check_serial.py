@@ -50,8 +50,10 @@ def gravity_search(last_g,current_g,ser0):
     #current_g[0] = f0
     #current_g[1] = f1
     state = -1
+    gravity_index= -1
     gravity_check = [0, 0]
     for index,k_value in enumerate(current_g):
+        
        # print(k_value,last_g[index])
 #        if(k_value - last_g[index] < -70):
 #            print(k_value,last_g[index])
@@ -76,6 +78,7 @@ def gravity_search(last_g,current_g,ser0):
                 #print("now state",gravity)
                 state = 0
                 print("放进")
+                gravity_index = index
                 predict_first = last_g[index]
                 #print(gravity)
                 if(abs(gravity - predict_first) > 70 ):
@@ -107,6 +110,7 @@ def gravity_search(last_g,current_g,ser0):
                 #print("first_state",last_g[index])
                 #print("now state",gravity)
                 print('拿出')
+                gravity_index = index
                 #print(gravity)
                 state = 1
                 predict_first = last_g[index]
@@ -120,9 +124,10 @@ def gravity_search(last_g,current_g,ser0):
                     
                     #print(index)
                     #print(result)
+
                 last_g[index] = gravity
     #[托盘索引，拿出状态，当前重力状态值，返回结果]
-    return [index,state,gravity_check,ab]
+    return [gravity_index,state,gravity_check,ab]
 
 if __name__ == "__main__":
     ser0 = open_com('/dev/ttyUSB0')
@@ -138,8 +143,9 @@ if __name__ == "__main__":
         current[0] = f0
         current[1] = f1
         result = gravity_search(temp,current,ser0)
-        if result[3]:
-            print(result)
+        print(result)
+        #if result[3]:
+            #print(result)
           
 """
     while True:

@@ -54,7 +54,8 @@ f0,f1 = gravity_out(ser0)
 temp[0] = f0
 temp[1] = f1
 current = [0,0]
-
+count = 0
+num = 0
 def gravity_process(return_dict):
     global ser0
     while True:
@@ -62,13 +63,11 @@ def gravity_process(return_dict):
         current[0] = f0
         current[1] = f1
         ab = gravity_search(temp,current,ser0)
-        
-        if  ab[1] != -1:
+        #if  ab[1] != -1:
             #result = json.dumps(ab, encoding='UTF-8', ensure_ascii=False)
             
             #print(result)
-            return_dict["result"] = ab
-
+        return_dict["result"] = ab
 
 
 if __name__ =="__main__":
@@ -80,44 +79,80 @@ if __name__ =="__main__":
 
     p.start()
     
-    count = 0
+
     list_state = [0,0]
     gravity_list = []
     while True:
             
         if return_dict:
-            
+            #print(return_dict)
             if list_state[0] !=0 or list_state[1] !=0:
-                if return_dict["result"][0] == 0:
-                    if abs(return_dict["result"][2][0]-list_state[0][2][0]) > 0:
+                if return_dict["result"][0] == 0 and count > 0:
+                    if abs(return_dict["result"][2][0]-list_state[0][2][0]) > 70.0:
                         #result = json.dumps(return_dict["result"][3], encoding='UTF-8', ensure_ascii=False)
                         #print(return_dict["result"][3])
+                        print("托盘 1")
                         index_sku = return_dict["result"][3]  # [('1', 359), ('2', 360)]
                         gravity_list.append(int(index_sku[0][0]))
                         gravity_list.append(int(index_sku[1][0]))
                         #print(sku_list[int(index_sku[0][0]) - 1],sku_list[int(index_sku[1][0]) - 1])
-                if return_dict["result"][0] == 1:
-                     if abs(return_dict["result"][2][1]-list_state[1][2][1]) > 0:
+                if return_dict["result"][0] == 1 and num > 0:
+                    if abs(return_dict["result"][2][1]-list_state[1][2][1]) > 70.0:
                         #result = json.dumps(return_dict["result"][3], encoding='UTF-8', ensure_ascii=False)
                         #print(return_dict["result"][3])
+                        print("托盘 2")
                         index_sku = return_dict["result"][3]
                         gravity_list.append(int(index_sku[0][0]))
                         gravity_list.append(int(index_sku[1][0]))                        
-                        #print(sku_list[int(index_sku[0][0]) - 1],sku_list[int(index_sku[1][0]) - 1])
-            count +=1
-            if count > 1:
-                if return_dict["result"][0] == 0:
-                    list_state[0] = return_dict["result"]
-                if return_dict["result"][0] == 1:
-                    list_state[1] = return_dict["result"]
-            else:
-                #print(return_dict["result"][3])
+
+            # if count ==0 or num == 0:
+            #     if return_dict["result"][0] == 0 or return_dict["result"][0] == 1:
+            #         print("Hello3")
+            #         index_sku = return_dict["result"][3]
+            #         gravity_list.append(int(index_sku[0][0]))
+            #         gravity_list.append(int(index_sku[1][0]))
+            if count == 0 and return_dict["result"][0] == 0:
+                print("托盘 1")
                 index_sku = return_dict["result"][3]
                 gravity_list.append(int(index_sku[0][0]))
-                gravity_list.append(int(index_sku[1][0]))                
-                #print(sku_list[int(index_sku[0][0]) - 1],sku_list[int(index_sku[1][0]) - 1])
+                gravity_list.append(int(index_sku[1][0]))
+            if num == 0 and  return_dict["result"][0] == 1:
+                print("托盘 2")
+                index_sku = return_dict["result"][3]
+                gravity_list.append(int(index_sku[0][0]))
+                gravity_list.append(int(index_sku[1][0]))
+            if return_dict["result"][0] == 0:
+                list_state[0] = return_dict["result"]
+                count +=1
+            if return_dict["result"][0] == 1:
+                list_state[1] = return_dict["result"]
+                num +=1
+            # count +=1
+            # if count > 1:
+            #     if return_dict["result"][0] == 0:
+            #         list_state[0] = return_dict["result"]
+            #     if return_dict["result"][0] == 1:
+            #         list_state[1] = return_dict["result"]
+            # else:
+            #     index_sku = return_dict["result"][3]
+            #     gravity_list.append(int(index_sku[0][0]))
+            #     gravity_list.append(int(index_sku[1][0]))                
 
             # return_dict = None
+        # if return_dict:
+        #     if return_dict["result"][0] == 0:
+        #         print("托盘 1 ")      
+        #         index_sku = return_dict["result"][3]
+        #         gravity_list.append(int(index_sku[0][0]))
+        #         gravity_list.append(int(index_sku[1][0]))  
+        #     elif return_dict["result"][0] == 1:
+        #         print("托盘 2 ")
+        #         index_sku = return_dict["result"][3]
+        #         gravity_list.append(int(index_sku[0][0]))
+        #         gravity_list.append(int(index_sku[1][0]))
+
+
+
         for camID in index:
             cmdl[camID].CameraQueryImage(camID,inbuf[camID],byref(buflen),0x104)
             arr = np.frombuffer(inbuf[camID],np.uint8)
@@ -139,11 +174,12 @@ if __name__ =="__main__":
                 img2 = Image(img)
                 results = net.detect(img2)
                 for cat,score,bounds in results:
-                    x,y,w,h = bounds
-                    cv2.rectangle(img, (int(x - w / 2), int(y - h / 2)), (int(x + w / 2), int(y + h / 2)), (255, 0, 0), thickness=2)
-                    cv2.putText(img,str(cat.decode("utf-8")),(int(x),int(y)),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,0))
-                    center = (int(x),int(y),str(cat.decode("utf-8")))
-                    pts.appendleft(center)
+                    if score > 0.5:
+                        x,y,w,h = bounds
+                        cv2.rectangle(img, (int(x - w / 2), int(y - h / 2)), (int(x + w / 2), int(y + h / 2)), (255, 0, 0), thickness=2)
+                        cv2.putText(img,str(cat.decode("utf-8")),(int(x),int(y)),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,0))
+                        center = (int(x),int(y),str(cat.decode("utf-8")))
+                        pts.appendleft(center)
             
             for i in np.arange(1, len(pts)):
                 
@@ -166,8 +202,8 @@ if __name__ =="__main__":
                         direction = "{}-{}".format(dirY,dirX)
                     else:
                         direction = dirX if dirX !="" else dirY
-                    if np.abs(dX1) > 20 and  np.abs(dY1) > 20:
-                        sku_code.append((pts[i][2]))
+                    if np.abs(dX) > 20 and  np.abs(dY) > 20:
+                        sku_code.append(pts[i][2])
                 thickness = int(np.sqrt(32 / float(i + 1)) * 2.5)
                 cv2.line(img, pts[i - 1][:2], pts[i][:2], (0, 0, 255), thickness)
             cv2.putText(img, direction, (10, 30), cv2.FONT_HERSHEY_SIMPLEX,0.65, (0, 0, 255), 3)
@@ -182,13 +218,19 @@ if __name__ =="__main__":
                 break
             
             set_sku = set(sku_code)
-
+            
             dict_sku = {}
             for item in set_sku:
                 dict_sku.update({item:sku_code.count(item)})
-            print(dict_sku)
-
+            for k,v in dict_sku.items():
+                if v < 4:
+                    dict_sku.pop(k)
+        #print(gravity_list)
+        #print(return_dict)
+        #print(gravity_list)
+        #print(dict_sku)
         if len(gravity_list) > 0 and len(dict_sku) > 0:
+            print(dict_sku,gravity_list)
             sku_dict = [int(k) for k in dict_sku.keys()]
             intersection = list(set(gravity_list).intersection(set(sku_dict)))
             for item in intersection:
@@ -197,6 +239,9 @@ if __name__ =="__main__":
                print(result)
             gravity_list = []
             dict_sku = {}
-
+            sku_code = []
+            pts.clear()
+        elif len(gravity_list) > 2:
+            gravity_list = [] 
     cv2.destroyAllWindows()
     p.join()
